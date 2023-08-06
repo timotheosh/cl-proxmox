@@ -1,0 +1,18 @@
+* cl-proxmox  - description
+Consumer of Proxmox API's. Might become a bigger project, but for now it is for experimentation.
+
+** Usage
+
+** Installation
+
+** Author
+
++ Tim Hawes <trhawes@gmail.com>
+
+** Copyright
+
+Copyright (c) 2023 Tim Hawes <trhawes@gmail.com>
+
+** License
+
+Licensed under the MIT License.
