@@ -4,11 +4,16 @@
   :license "MIT"
   :depends-on ("cl-ppcre"
                "unix-opts"
-	       "drakma"
-	       "yason")
+               "alexandria"
+               "serapeum"
+               "drakma"
+               "yason")
   :components ((:module "src"
                 :components
-                ((:file "main"))))
+                ((:file "main")
+                 (:module "node"
+                  :components
+                  ((:file "qemu"))))))
   :description "Consumer of Proxmox API's"
   :build-operation "asdf:program-op"
   :build-pathname "target/cl-proxmox"
