@@ -3,7 +3,16 @@
   (:export :-main))
 (in-package :cl-proxmox)
 
+(defparameter *token-id* nil)
+(defparameter *token-secret* nil)
+
+(defparameter *node* nil)
+(defparameter *url* nil)
+(defparameter *ca-file* nil)
+
+(defparameter *config-path* (concatenate 'string (uiop:getenv "HOME") "/.config/cl-proxmox/config.toml"))
 (setf yason:*parse-object-key-fn* (lambda (key) (intern (string-upcase key) "KEYWORD")))
+(setf yason:*symbol-key-encoder* #'string-downcase)
 (setf yason:*parse-json-booleans-as-symbols* t)
 
 
@@ -17,8 +26,21 @@
   (format t "warning: ~s option is unknown!~%" (opts:option condition))
   (invoke-restart 'opts:skip-option))
 
+(defun read-config ()
+  (if (uiop:file-exists-p *config-path*)
+      (let* ((data (pp-toml:parse-toml (uiop:read-file-string *config-path*)))
+             (secrets (gethash "secrets" data))
+             (endpoint (gethash "endpoint" data)))
+        (setf *token-id* (gethash "token_id" secrets))
+        (setf *token-secret* (gethash "token_secret" secrets))
+        (setf *url* (gethash "url" endpoint))
+        (setf *node* (gethash "node" endpoint))
+        (setf *ca-file* (gethash "rootca" endpoint))
+        t)
+      (format t "No config in config path ~A~%" *config-path*)))
+
 (defun get-header ()
-  (cons "Authorization" *token*))
+  (cons "Authorization" (format nil "PVEAPIToken=~A=~A" *token-id* *token-secret*)))
 
 (defun https-get (url)
   (let ((response-stream (drakma:http-request url
@@ -46,4 +68,5 @@
                    :usage-of "cl-proxmox INPUT")
                   (opts:exit 1)))
           (t 
-           (format t "Hello, ~A!~%" (first args))))))
+           (when (read-config)
+             (get-ip 175))))))

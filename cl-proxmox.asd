@@ -7,7 +7,8 @@
                "alexandria"
                "serapeum"
                "drakma"
-               "yason")
+               "yason"
+               "pp-toml")
   :components ((:module "src"
                 :components
                 ((:file "main")
