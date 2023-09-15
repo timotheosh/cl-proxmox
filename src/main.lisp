@@ -1,20 +1,15 @@
 (defpackage cl-proxmox
-  (:use :cl :serapeum :alexandria)
+  (:use :cl)
   (:export :-main))
 (in-package :cl-proxmox)
 
-(defparameter *token-id* nil)
-(defparameter *token-secret* nil)
+(defparameter *token-id* "jenkins@pve!PowderyBunionIdeallyManmadeTingleRejoin")
+(defparameter *token-secret* "81fa367d-9784-4668-ace1-5e9d6ca24ce3")
 
-(defparameter *node* nil)
-(defparameter *url* nil)
-(defparameter *ca-file* nil)
-
-(defparameter *config-path* (concatenate 'string (uiop:getenv "HOME") "/.config/cl-proxmox/config.toml"))
-(setf yason:*parse-object-key-fn* (lambda (key) (intern (string-upcase key) "KEYWORD")))
-(setf yason:*symbol-key-encoder* #'string-downcase)
-(setf yason:*parse-json-booleans-as-symbols* t)
-
+(defparameter *node* "northstar")
+(defparameter *url* "https://northstar.selfdidactic.lan:8006")
+(defparameter *token* (format nil "PVEAPIToken=~A=~A" *token-id* *token-secret*))
+(defparameter *ca-file* "/usr/local/share/ca-certificates/Selfdidactic_Intranet_562936459577689798328047806690239883926300597113.crt")
 
 (opts:define-opts
   (:name :help
@@ -25,30 +20,6 @@
 (defun unknown-option (condition)
   (format t "warning: ~s option is unknown!~%" (opts:option condition))
   (invoke-restart 'opts:skip-option))
-
-(defun read-config ()
-  (if (uiop:file-exists-p *config-path*)
-      (let* ((data (pp-toml:parse-toml (uiop:read-file-string *config-path*)))
-             (secrets (gethash "secrets" data))
-             (endpoint (gethash "endpoint" data)))
-        (setf *token-id* (gethash "token_id" secrets))
-        (setf *token-secret* (gethash "token_secret" secrets))
-        (setf *url* (gethash "url" endpoint))
-        (setf *node* (gethash "node" endpoint))
-        (setf *ca-file* (gethash "rootca" endpoint))
-        t)
-      (format t "No config in config path ~A~%" *config-path*)))
-
-(defun get-header ()
-  (cons "Authorization" (format nil "PVEAPIToken=~A=~A" *token-id* *token-secret*)))
-
-(defun https-get (url)
-  (let ((response-stream (drakma:http-request url
-                                              :ca-file *ca-file*
-                                              :additional-headers (list (get-header))
-                                              :want-stream t)))
-    (setf (flexi-streams:flexi-stream-external-format response-stream) :utf-8)
-    (getf (getf (yason:parse response-stream :object-as :plist) :data) :result)))
 
 (defun -main (&rest args)
   (declare (ignorable args))
@@ -68,5 +39,4 @@
                    :usage-of "cl-proxmox INPUT")
                   (opts:exit 1)))
           (t 
-           (when (read-config)
-             (get-ip 175))))))
+           (get-ip (first args))))))

@@ -4,11 +4,9 @@
   :license "MIT"
   :depends-on ("cl-ppcre"
                "unix-opts"
-               "alexandria"
-               "serapeum"
                "drakma"
                "yason"
-               "pp-toml")
+               "modf")
   :components ((:module "src"
                 :components
                 ((:file "main")
@@ -17,7 +15,7 @@
                   ((:file "qemu"))))))
   :description "Consumer of Proxmox API's"
   :build-operation "asdf:program-op"
-  :build-pathname "target/cl-proxmox"
+  :build-pathname "target/getip"
   :entry-point "cl-proxmox:-main"
   :in-order-to ((test-op (test-op "cl-proxmox/tests"))))
 

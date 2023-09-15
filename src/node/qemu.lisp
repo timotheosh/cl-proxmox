@@ -1,13 +1,20 @@
 (in-package :cl-proxmox)
 
-(defun get/get-ip (vm-id)
-  (let* ((response (https-get (format nil "~A/api2/json/nodes/~A/qemu/~A/agent/network-get-interfaces"
-                                      *url* *node* vm-id)))
-         (data (remove-if (lambda (entry) (string-equal (getf entry :name) "lo0")) response)))
-    (mapcar (lambda (entry)
-              (dict  :hardware-address (getf entry :hardware-address)
-                     :ip-addresses (mapcar (lambda (x) (getf x :ip-address)) (getf entry :ip-addresses)))) data)))
+(defun get-ip-query (vm-id)
+  (let ((stream (drakma:http-request (format nil "~A/api2/json/nodes/~A/qemu/~A/agent/network-get-interfaces"
+                                             *url* *node* vm-id)
+                                     :ca-file *ca-file*
+                                     :additional-headers (list (cons "Authorization" *token*))
+                                     :want-stream t)))
+    (setf (flexi-streams:flexi-stream-external-format stream) :utf-8)
+    (setf yason:*parse-object-key-fn* (lambda (key) (intern (string-upcase key) "KEYWORD")))
+    (yason:parse stream :object-as :plist)))
+
+
+(defun get-ip-full (vm-id)
+  (let ((result (get-ip-query vm-id)))
+    (car (remove-if (lambda (entry)
+                      (string-equal (subseq (getf entry :name) 0 2) "lo")) (first (cdr (cadr result)))))))
 
 (defun get-ip (vm-id)
-  (let ((data (get/get-ip vm-id)))
-    (yason:encode-plist data *standard-output*)))
+  (format t "~{~A~%~}" (mapcar (lambda(entry) (getf entry :ip-address)) (getf (get-ip-full vm-id) :ip-addresses))))
