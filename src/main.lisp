@@ -29,14 +29,14 @@
             (opts:get-opts)))
     (cond ((getf options :help) 
            (progn (opts:describe
-                   :prefix (format nil "cl-proxmox Consumer of Proxmox API's")
-                   :usage-of "cl-proxmox INPUT")
+                   :prefix (format nil "cl-proxmox Consumer of Proxmox API's~%Currently only retrieves ip addresses by vm id")
+                   :usage-of "getip <vmid>")
                   (opts:exit 1)))
           ((not (= (length args) 1)) 
-           (progn (format t "Can only process one argument!")
+           (progn (format t "Can only process one argument!~%")
                   (opts:describe
-                   :prefix (format nil "cl-proxmox Consumer of Proxmox API's")
-                   :usage-of "cl-proxmox INPUT")
+                   :prefix (format nil "cl-proxmox Consumer of Proxmox API's~%Currently only retrieves ip addresses by vm id")
+                   :usage-of "getip <vmid>")
                   (opts:exit 1)))
           (t 
            (get-ip (first args))))))
